@@ -80,8 +80,8 @@ class ConversationManager:
 
 def get_file_data(memory=None):    
     # dumpData()
+    print("i am working 2.")
     persist_directory = 'openaidb'
-
     ## here we are using OpenAI embeddings but in future we will swap out to local embeddings
     # AzureOpenAIEmbeddings(openai_api_base=endpoint, openai_api_version="2024-05-01-preview", openai_api_key=api_key, chunk_size=1000,validate_base_url=False)
     # embedding = AzureOpenAIEmbeddings(
@@ -107,6 +107,7 @@ def get_file_data(memory=None):
     vectordb = Chroma(persist_directory=persist_directory, 
                     embedding_function=embedding)
     qa_chain = set_model(vectordb,memory)
+    print("i am working 3.")
     return qa_chain
 api_key = os.getenv("AZURE_OPENAI_API_KEY")
 endpoint = os.getenv("ENDPOINT_URL")
@@ -158,6 +159,7 @@ def make_payload(payload,user_query):
     # print(qa_chain.__dict__)
 
 def set_model(vectordb,prev_memory=None):
+    print("i am working 4.")
     retriever = vectordb.as_retriever(search_kwargs={"k": 10})
     # llm = gpt
     llm = AzureChatOpenAI(
@@ -208,6 +210,7 @@ def set_model(vectordb,prev_memory=None):
         template=template
     )
     
+    print("i am working 5.")
     qa_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=retriever,
@@ -217,7 +220,8 @@ def set_model(vectordb,prev_memory=None):
         rephrase_question=False,
         combine_docs_chain_kwargs={'prompt': prompt}
     )
-    print("i am working you idiot.")
+    
+    print("i am working 7.")
     return qa_chain
 
 def process_llm_response(llm_response):
@@ -268,6 +272,7 @@ def change_image_format(image):
 
 @app.route('/dentaltrauma', methods=['GET'])
 def index():
+    print("i am working 1.")
     qa_chain = get_file_data()
     ConversationManager.get_instance().set_conversation(qa_chain,None)
     return render_template('index.html')
