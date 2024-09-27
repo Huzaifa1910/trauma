@@ -1,13 +1,11 @@
-from flask import Flask, request, redirect, render_template, jsonify
-import sqlite3
-import string
-import random
+from flask import Flask, request, jsonify, render_template
 import dotenv
 import os
 import requests
 import re
+from openai import OpenAI
 from langchain_community.vectorstores import Chroma
-from langchain.memory import ConversationSummaryBufferMemory
+from langchain.memory import ConversationSummaryBufferMemory, ConversationBufferMemory
 # from langchain.chains import RetrievalQA
 from langchain.chains import ConversationalRetrievalChain
 # from langchain_openai import ChatOpenAI
@@ -22,28 +20,10 @@ from PIL import Image
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.messages.human import HumanMessage
 from langchain_core.messages.ai import AIMessage
-
 dotenv.load_dotenv()
 
 
 app = Flask(__name__)
-
-
-
-# Function to generate a random string for the short URL
-def generate_short_url(length=6):
-    characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters) for _ in range(length))
-
-# Database setup
-def init_db():
-    conn = sqlite3.connect('url_shortener.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS urls
-                 (id INTEGER PRIMARY KEY, original_url TEXT, short_url TEXT)''')
-    conn.commit()
-    conn.close()
-
 
 
 class ConversationManager:
@@ -80,34 +60,13 @@ class ConversationManager:
 
 def get_file_data(memory=None):    
     # dumpData()
-    print("i am working 2.")
     persist_directory = 'openaidb'
-    ## here we are using OpenAI embeddings but in future we will swap out to local embeddings
-    # AzureOpenAIEmbeddings(openai_api_base=endpoint, openai_api_version="2024-05-01-preview", openai_api_key=api_key, chunk_size=1000,validate_base_url=False)
-    # embedding = AzureOpenAIEmbeddings(
-    #     model="text-embedding-3-large",
-    #     openai_api_base=endpoint,
-    #     openai_api_version="2024-02-01", # If not provided, will read env variable AZURE_OPENAI_API_VERSION
-    #     # dimensions: Optional[int] = None, # Can specify dimensions with new text-embedding-3 models
-    #     # azure_endpoint=endpoint, #If not provided, will read env variable AZURE_OPENAI_ENDPOINT
-    #     openai_api_key=api_key,
-    #     chunk_size=1000,
-    #     validate_base_url=False # Can provide an API key directly. If missing read env variable AZURE_OPENAI_API_KEY
-    # )
-    embedding = OpenAIEmbeddings()
-    # embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001",google_api_key=GOOGLE_API_KEY)
 
-    # vectordb = Chroma.from_documents(documents=texts, 
-    #                                 embedding=embedding,
-    #                                 persist_directory=persist_directory)
-    # # persiste the db to disk
-    # vectordb.persist()
-    # vectordb = None
-    # Now we can load the persisted database from disk, and use it as normal. 
+    ## here we are using OpenAI embeddings but in future we will swap out to local embeddings
+    embedding = OpenAIEmbeddings()
     vectordb = Chroma(persist_directory=persist_directory, 
                     embedding_function=embedding)
     qa_chain = set_model(vectordb,memory)
-    print("i am working 3.")
     return qa_chain
 api_key = os.getenv("AZURE_OPENAI_API_KEY")
 endpoint = os.getenv("ENDPOINT_URL")
@@ -140,7 +99,7 @@ def retrieve_history_from_json(message_list):
             message = AIMessage(message_list[i][1])
         convo_hist.append(message)
     chat_history = InMemoryChatMessageHistory(messages=convo_hist)
-    return ConversationSummaryBufferMemory(memory_key='chat_history', return_messages=True, output_key='answer', chat_memory=chat_history)
+    return ConversationBufferMemory(memory_key='chat_history', return_messages=True, output_key='answer', chat_memory=chat_history)
 
 
 def make_payload(payload,user_query):
@@ -159,7 +118,6 @@ def make_payload(payload,user_query):
     # print(qa_chain.__dict__)
 
 def set_model(vectordb,prev_memory=None):
-    print("i am working 4.")
     retriever = vectordb.as_retriever(search_kwargs={"k": 10})
     # llm = gpt
     llm = AzureChatOpenAI(
@@ -210,7 +168,6 @@ def set_model(vectordb,prev_memory=None):
         template=template
     )
     
-    print("i am working 5.")
     qa_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=retriever,
@@ -221,7 +178,6 @@ def set_model(vectordb,prev_memory=None):
         combine_docs_chain_kwargs={'prompt': prompt}
     )
     
-    print("i am working 7.")
     return qa_chain
 
 def process_llm_response(llm_response):
@@ -270,9 +226,8 @@ def change_image_format(image):
     image = base64.b64encode(buffer.getvalue()).decode('utf-8')
     return image
 
-@app.route('/dentaltrauma', methods=['GET'])
+@app.route('/', methods=['GET'])
 def index():
-    print("i am working 1.")
     qa_chain = get_file_data()
     ConversationManager.get_instance().set_conversation(qa_chain,None)
     return render_template('index.html')
@@ -282,8 +237,6 @@ def index():
 
 
 
-
-# print(response.json())
 @app.route('/get_image_description', methods=['POST'])
 def get_image_description():
     headers = {
@@ -369,37 +322,5 @@ def get_response():
             "avatar": "https://th.bing.com/th/id/R.78399594cd4ce07c0246b0413c95f7bf?rik=Nwo0AAuaJO%2fPEQ&pid=ImgRaw&r=0"
         }
     })
-
-# Route for the homepage
-@app.route('/', methods=['GET', 'POST'])
-def index2():
-    if request.method == 'POST':
-        original_url = request.form['url']
-        short_url = generate_short_url()
-        
-        conn = sqlite3.connect('url_shortener.db')
-        c = conn.cursor()
-        c.execute("INSERT INTO urls (original_url, short_url) VALUES (?, ?)", (original_url, short_url))
-        conn.commit()
-        conn.close()
-        
-        return render_template('index2.html', short_url=short_url)
-    
-    return render_template('index2.html')
-
-# Route to redirect to the original URL
-@app.route('/<short_url>')
-def redirect_to_url(short_url):
-    conn = sqlite3.connect('url_shortener.db')
-    c = conn.cursor()
-    c.execute("SELECT original_url FROM urls WHERE short_url=?", (short_url,))
-    row = c.fetchone()
-    conn.close()
-    
-    if row:
-        return redirect(row[0])
-    return "URL not found!", 404
-
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True)
