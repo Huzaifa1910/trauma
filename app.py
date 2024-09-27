@@ -357,7 +357,7 @@ def get_response():
 
 # Route for the homepage
 @app.route('/', methods=['GET', 'POST'])
-def index():
+def index2():
     if request.method == 'POST':
         original_url = request.form['url']
         short_url = generate_short_url()
