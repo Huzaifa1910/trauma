@@ -55,7 +55,70 @@ class ConversationManager:
             "chain": self.chain,
             "memory": self.memory
         }
+
+
+def set_model(vectordb,prev_memory=None):
+    retriever = vectordb.as_retriever(search_kwargs={"k": 10})
+    # llm = gpt
+    llm = AzureChatOpenAI(
+            azure_deployment=deployment,  # or your deployment
+            api_version="2024-05-01-preview",  # or your api version
+            temperature=0,
+            azure_endpoint=endpoint,
+            max_tokens=None,
+            timeout=None,
+            max_retries=2,
+        )
+    if prev_memory is not None:
+        memory = prev_memory
+    else:
+        memory = ConversationSummaryBufferMemory(memory_key='chat_history', return_messages=True, output_key='answer', llm=llm)
     
+
+
+    template = """You are a dental trauma chatbot designed to assist health care workers, dentists, and first responders (including teachers) in handling dental trauma cases. Your role is to provide precise, step-by-step guidance, ensuring users receive accurate, tailored responses based on their professional role and the specific situation of the trauma. 
+        Ascertain User Role: At the start of each conversation, ask the user to identify their role: health care worker, dentist, or first responder (e.g., teacher). Use this information to customize your responses to match their expertise level.
+
+        Understand the Trauma Situation:
+
+        Ask the following questions to gather key information about the dental trauma:
+        Patient's Age: This helps determine whether the affected teeth are permanent or deciduous (baby teeth).
+        Type of Tooth: Ask if the affected tooth is permanent or deciduous.
+        Tetanus Prophylaxis: Inquire whether the patient has received a Tetanus shot, especially if the trauma involves open wounds.
+        Trauma Intensity: Ask about the severity of the injury, such as if the patient has lost consciousness or has other serious injuries that may require immediate medical attention.
+        Intuitive Guidance:
+
+        Based on the user's answers, provide step-by-step instructions on how to handle the situation.
+        Reference the provided context and pull relevant details from the vector database to ensure accuracy.
+        Keep conversations concise but informative, providing additional details if asked or as the situation escalates.
+        Prioritize user safety by recommending immediate medical attention when necessary.
+        Adapt to User's Needs:
+
+        Be empathetic and patient. If the user seems uncertain, offer clarification and additional questions to guide them through the process.
+        Keep responses accessible, especially when dealing with first responders like teachers who may not have medical training.
+        Your goal is to ensure that each interaction is smooth, intuitive, and context-driven, providing the best possible support for handling dental trauma cases. Do not break character and do not answer irrelvant questions.
+        Do not try to summarize or change the user's question. and if user want to provide image then accept it.
+                Context: {context}
+
+        History: {chat_history}
+    Question: {question}
+        # """
+    prompt = PromptTemplate(
+        input_variables=["context", "question", "chat_history"],
+        template=template
+    )
+    
+    qa_chain = ConversationalRetrievalChain.from_llm(
+        llm=llm,
+        retriever=retriever,
+        memory=memory,
+        return_source_documents=True,
+        verbose=True,
+        rephrase_question=False,
+        combine_docs_chain_kwargs={'prompt': prompt}
+    )
+    
+    return qa_chain
 
 
 def get_file_data(memory=None):    
@@ -72,7 +135,8 @@ api_key = os.getenv("AZURE_OPENAI_API_KEY")
 endpoint = os.getenv("ENDPOINT_URL")
 deployment = "gpt40"
 
-
+qa_chain = get_file_data()
+ConversationManager.get_instance().set_conversation(qa_chain,None)
 def transform_messages(messages):
     transformed_messages = []
     for i in range(len(messages)):
@@ -228,8 +292,6 @@ def change_image_format(image):
 
 @app.route('/', methods=['GET'])
 def index():
-    qa_chain = get_file_data()
-    ConversationManager.get_instance().set_conversation(qa_chain,None)
     return render_template('index.html')
 
 
