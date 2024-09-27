@@ -99,7 +99,7 @@ def retrieve_history_from_json(message_list):
             message = AIMessage(message_list[i][1])
         convo_hist.append(message)
     chat_history = InMemoryChatMessageHistory(messages=convo_hist)
-    return ConversationBufferMemory(memory_key='chat_history', return_messages=True, output_key='answer', chat_memory=chat_history)
+    return ConversationSummaryBufferMemory(memory_key='chat_history', return_messages=True, output_key='answer', chat_memory=chat_history)
 
 
 def make_payload(payload,user_query):
