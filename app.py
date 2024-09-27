@@ -258,8 +258,8 @@ def change_image_format(image):
 
 @app.route('/dentaltrauma', methods=['GET'])
 def index():
-    # qa_chain = get_file_data()
-    # ConversationManager.get_instance().set_conversation(qa_chain,None)
+    qa_chain = get_file_data()
+    ConversationManager.get_instance().set_conversation(qa_chain,None)
     return render_template('index.html')
 
 
