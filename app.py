@@ -368,7 +368,7 @@ def index():
         conn.commit()
         conn.close()
         
-        return render_template('index.html', short_url=short_url)
+        return render_template('index2.html', short_url=short_url)
     
     return render_template('index2.html')
 
