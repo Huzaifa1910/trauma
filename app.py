@@ -159,17 +159,6 @@ def set_model(vectordb,prev_memory=None):
             timeout=None,
             max_retries=2,
         )
-    # llm = ChatOpenAI(
-    # model="gpt-4o",
-    # temperature=0,
-    # max_tokens=None,
-    # timeout=None,
-    # max_retries=2,
-    # # api_key="...",  # if you prefer to pass api key in directly instaed of using env vars
-    # # base_url="...",
-    # # organization="...",
-    # # other params...
-    # )
     if prev_memory is not None:
         memory = prev_memory
     else:
@@ -279,16 +268,6 @@ def index():
 
 
 
-# ENDPOINT = "https://reader.openai.azure.com/openai/deployments/imageTesting/chat/completions?api-version=2024-02-15-preview"
-
-# # Send request
-# try:
-#     response = requests.post(ENDPOINT, headers=headers, json=payload)
-#     response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
-# except requests.RequestException as e:
-#     raise SystemExit(f"Failed to make the request. Error: {e}")
-
-# Handle the response as needed (e.g., print or process)
 # print(response.json())
 @app.route('/get_image_description', methods=['POST'])
 def get_image_description():
@@ -303,13 +282,6 @@ def get_image_description():
     png_image = change_image_format(image)
     png_image = f"data:image/png;base64,{png_image}"
     image_red = reduce_base64_image_size(png_image, output_format='PNG', quality=100, width_scale=0.9)
-    # return jsonify({
-    #     'response': "Image processed successfully.",
-    #     "sender": {
-    #         "name": "Monika Figi",
-    #         "avatar": "https://th.bing.com/th/id/R.78399594cd4ce07c0246b0413c95f7bf?rik=Nwo0AAuaJO%2fPEQ&pid=ImgRaw&r=0"
-    #     }
-    # })
     user_query = (
             "user",
             [
@@ -326,17 +298,6 @@ def get_image_description():
     payload = {
         "messages": [],
         }
-    # llm = AzureChatOpenAI(
-    #     api_key=api_key,
-    #     api_version="2024-05-01-preview",
-    #     azure_endpoint=endpoint,
-    #     azure_deployment="gpt40",  # or your deployment
-    #     temperature=0,
-    #     max_tokens=None,
-    #     timeout=None,
-    #     max_retries=2,
-    #     # other params...
-    #     ) 
     resp_payload = make_payload(payload,user_query)
     llm = AzureChatOpenAI(
             azure_deployment=deployment,  # or your deployment
@@ -358,81 +319,6 @@ def get_image_description():
             "avatar": "https://th.bing.com/th/id/R.78399594cd4ce07c0246b0413c95f7bf?rik=Nwo0AAuaJO%2fPEQ&pid=ImgRaw&r=0"
         }
     })
-# def get_image_description():
-#     headers = {
-#         "Content-Type": "application/json",
-#         "api-key": os.getenv("AZURE_OPENAI_API_KEY"),
-#     }
-#     # Encode the uploaded image in base64
-#     data = request.json
-#     image = data['image']
-#     prompt = data['question']
-#     png_image = change_image_format(image)
-#     png_image = f"data:image/png;base64,{png_image}"
-#     image_red = reduce_base64_image_size(png_image, output_format='PNG', quality=100, width_scale=0.5)
-#     # return jsonify({
-#     #     'response': "Image processed successfully.",
-#     #     "sender": {
-#     #         "name": "Monika Figi",
-#     #         "avatar": "https://th.bing.com/th/id/R.78399594cd4ce07c0246b0413c95f7bf?rik=Nwo0AAuaJO%2fPEQ&pid=ImgRaw&r=0"
-#     #     }
-#     # })
-#     user_query = {
-#             "role": "user",
-#             "content": [
-#                 {
-#                 "type": "text",
-#                 "text": "\n"
-#                 },
-#                 {
-#                 "type": "image_url",
-#                 "image_url": {
-#                     "url": f"{image_red}"
-#                 }
-#                 },
-#                 {
-#                 "type": "text",
-#                 "text": "\n"
-#                 }
-#             ]
-#             }
-#     # Payload for the request
-#     payload = {
-#         "messages": [],
-#         "temperature": 0.7,
-#         "top_p": 0.95,
-#         "max_tokens": 600
-#         }
-#     # llm = AzureChatOpenAI(
-#     #     api_key=api_key,
-#     #     api_version="2024-05-01-preview",
-#     #     azure_endpoint=endpoint,
-#     #     azure_deployment="gpt40",  # or your deployment
-#     #     temperature=0,
-#     #     max_tokens=None,
-#     #     timeout=None,
-#     #     max_retries=2,
-#     #     # other params...
-#     #     ) 
-#     resp_payload = make_payload(payload,user_query)
-#     ENDPOINT = "https://automltest.openai.azure.com/openai/deployments/gpt40/chat/completions?api-version=2024-05-01-preview"
-#     # Send request
-#     try:
-#         response = requests.post(ENDPOINT, headers=headers, json=resp_payload)
-#         response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
-#     except requests.RequestException as e:
-#         print(e)
-#         # raise SystemExit(f"Failed to make the request. Error: {e}")
-
-#     # Handle the response as needed (e.g., print or process)
-#     print(response.json())
-#     return jsonify({
-#         'response': response.json()['choices'][0]['message']['content'],
-#         "sender": {
-#             "name": "Monika Figi",
-#             "avatar": "https://th.bing.com/th/id/R.78399594cd4ce07c0246b0413c95f7bf?rik=Nwo0AAuaJO%2fPEQ&pid=ImgRaw&r=0"
-#         }
-#     })
 
 @app.route('/get_response', methods=['POST', 'GET'])
 def get_response():
