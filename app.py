@@ -6,9 +6,8 @@ import dotenv
 import os
 import requests
 import re
-from openai import OpenAI
 from langchain_community.vectorstores import Chroma
-from langchain.memory import ConversationSummaryBufferMemory, ConversationBufferMemory
+from langchain.memory import ConversationSummaryBufferMemory
 # from langchain.chains import RetrievalQA
 from langchain.chains import ConversationalRetrievalChain
 # from langchain_openai import ChatOpenAI
@@ -84,6 +83,17 @@ def get_file_data(memory=None):
     persist_directory = 'openaidb'
 
     ## here we are using OpenAI embeddings but in future we will swap out to local embeddings
+    # AzureOpenAIEmbeddings(openai_api_base=endpoint, openai_api_version="2024-05-01-preview", openai_api_key=api_key, chunk_size=1000,validate_base_url=False)
+    # embedding = AzureOpenAIEmbeddings(
+    #     model="text-embedding-3-large",
+    #     openai_api_base=endpoint,
+    #     openai_api_version="2024-02-01", # If not provided, will read env variable AZURE_OPENAI_API_VERSION
+    #     # dimensions: Optional[int] = None, # Can specify dimensions with new text-embedding-3 models
+    #     # azure_endpoint=endpoint, #If not provided, will read env variable AZURE_OPENAI_ENDPOINT
+    #     openai_api_key=api_key,
+    #     chunk_size=1000,
+    #     validate_base_url=False # Can provide an API key directly. If missing read env variable AZURE_OPENAI_API_KEY
+    # )
     embedding = OpenAIEmbeddings()
     # embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001",google_api_key=GOOGLE_API_KEY)
 
@@ -129,7 +139,7 @@ def retrieve_history_from_json(message_list):
             message = AIMessage(message_list[i][1])
         convo_hist.append(message)
     chat_history = InMemoryChatMessageHistory(messages=convo_hist)
-    return ConversationBufferMemory(memory_key='chat_history', return_messages=True, output_key='answer', chat_memory=chat_history)
+    return ConversationSummaryBufferMemory(memory_key='chat_history', return_messages=True, output_key='answer', chat_memory=chat_history)
 
 
 def make_payload(payload,user_query):
@@ -207,7 +217,7 @@ def set_model(vectordb,prev_memory=None):
         rephrase_question=False,
         combine_docs_chain_kwargs={'prompt': prompt}
     )
-    
+    print("i am working you idiot.")
     return qa_chain
 
 def process_llm_response(llm_response):
