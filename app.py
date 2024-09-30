@@ -4,7 +4,6 @@ import os
 import requests
 import re
 from openai import OpenAI
-from langchain_community.vectorstores import Chroma
 from langchain.memory import ConversationSummaryBufferMemory, ConversationBufferMemory
 # from langchain.chains import RetrievalQA
 from langchain.chains import ConversationalRetrievalChain
@@ -20,10 +19,11 @@ from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.messages.human import HumanMessage
 from langchain_core.messages.ai import AIMessage
 import sys
-dotenv.load_dotenv()
 
 sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
+from langchain_community.vectorstores import Chroma
 
+dotenv.load_dotenv()
 app = Flask(__name__)
 
 
