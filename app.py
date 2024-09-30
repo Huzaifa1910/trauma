@@ -20,7 +20,7 @@ from langchain_core.messages.human import HumanMessage
 from langchain_core.messages.ai import AIMessage
 import sys
 
-# sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
+sys.modules["sqlite3"] = sys.modules.pop("pysqlite3-binary")
 from langchain_community.vectorstores import Chroma
 
 dotenv.load_dotenv()
