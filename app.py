@@ -20,8 +20,10 @@ from PIL import Image
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.messages.human import HumanMessage
 from langchain_core.messages.ai import AIMessage
+import sys
 dotenv.load_dotenv()
 
+sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
 
 app = Flask(__name__)
 
