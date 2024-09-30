@@ -11,7 +11,6 @@ from langchain.chains import ConversationalRetrievalChain
 # from langchain_openai import ChatOpenAI
 from langchain.chat_models import AzureChatOpenAI
 import os.path
-import google.generativeai as genai
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain.embeddings import OpenAIEmbeddings
 import base64
