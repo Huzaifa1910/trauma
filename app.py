@@ -372,18 +372,29 @@ def get_response():
         ConversationManager.get_instance().set_conversation(qa_chain, None)
     else:
         qa_chain = ConversationManager.get_instance().get_conversation()['chain']
-        
-    # Prepare the input for the chain
-    response = qa_chain({"question":question})
-    # print(response['source_documents'][0].__dict__['metadata']['source'])
-
-    return jsonify({
+    try:
+        response = qa_chain({"question":question})
+        resp = {
         'source': response['source_documents'][0].__dict__['metadata']['source'],
         'response': response['answer'],
         "sender": {
             "name": "Monika Figi",
             "avatar": "https://th.bing.com/th/id/R.78399594cd4ce07c0246b0413c95f7bf?rik=Nwo0AAuaJO%2fPEQ&pid=ImgRaw&r=0"
         }
-    })
+    }
+    except Exception as e:
+        print(e)
+        response = {"answer": str(e), "source_documents": []}
+        resp = {
+            "response": response['answer'],
+            "sender": {
+                "name": "Monika Figi",
+                "avatar": "https://th.bing.com/th/id/R.78399594cd4ce07c0246b0413c95f7bf?rik=Nwo0AAuaJO%2fPEQ&pid=ImgRaw&r=0"
+            }
+        }
+    # Prepare the input for the chain
+    # print(response['source_documents'][0].__dict__['metadata']['source'])
+
+    return jsonify(resp)
 if __name__ == '__main__':
     app.run(debug=True)

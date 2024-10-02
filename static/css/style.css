@@ -213,7 +213,6 @@ body {
     padding: 0 1em;
     height: 55px;
     margin: 0.5em 0 10px;
-    position: absolute;
     bottom: 0;
 }
 #chat .chat__conversation-panel__container {
@@ -423,15 +422,26 @@ color: #ffffff;
 .btn-space{
 margin: 10px;
 }
-@media only screen and (max-width: 600px) {
-    #chat {
-    margin: 0;
-    border-radius: 0;
+@media only screen and (max-width: 900px) {
+    .ui_interface_containers{
+        flex-direction: column;
+        height: 100%;
     }
-    #chat .chat__conversation-board {
-    height: calc(100vh - 55px - 2em - .5em - 3em);
+    #chat{
+        width: 90vh;
     }
-    #chat .chat__conversation-board__message__options {
-    display: none !important;
+    #citations{
+        width: 90vh;
+    }
+}
+@media only screen and (max-width: 620px) {
+    .ui_interface_containers{
+        height: 100%;
+    }
+    #chat{
+        width: 90%;
+    }
+    #citations{
+        width: 90%;
     }
 }
