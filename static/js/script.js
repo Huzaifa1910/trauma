@@ -343,6 +343,9 @@ function sendMessage() {
     const messageInput = document.getElementById("message-input")
     // get the value of the message input element
     const message = messageInput.value
+    if(message === "") {
+        return
+    }
     // create a message object
     const messageObj = {
         message: message,
