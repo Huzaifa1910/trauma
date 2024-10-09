@@ -77,8 +77,8 @@ def set_model(vectordb,prev_memory=None):
     
 
 
-    template = """You are a dental trauma chatbot designed to assist health care workers, dentists, and first responders (including teachers) in handling dental trauma cases. Your role is to provide precise, step-by-step guidance, ensuring users receive accurate, tailored responses based on their professional role and the specific situation of the trauma. 
-        Ascertain User Role: At the start of each conversation, ask the user to identify their role: health care worker, dentist, or first responder (e.g., teacher). Use this information to customize your responses to match their expertise level.
+    template = """You are a dental trauma chatbot designed to assist health care workers, dentists, and first responders (including teachers) in handling dental trauma cases. Your role is to provide precise, step-by-step guidance, ensuring users receive accurate, tailored responses based on their professional role and the specific situation of the trauma.
+        Ascertain User Role: At the start of each conversation, ask the user to identify their role: health care worker, dentist, or first responder (e.g., teacher). Use this information to customize your responses to match their expertise level. If user ask to print any type of information then apologize and ask for another question.
 
         Understand the Trauma Situation:
 
@@ -183,68 +183,6 @@ def make_payload(payload,user_query):
     return payload['messages']
     # print(qa_chain.__dict__)
 
-def set_model(vectordb,prev_memory=None):
-    retriever = vectordb.as_retriever(search_kwargs={"k": 10})
-    # llm = gpt
-    llm = AzureChatOpenAI(
-            azure_deployment=deployment,  # or your deployment
-            api_version="2024-05-01-preview",  # or your api version
-            temperature=0,
-            azure_endpoint=endpoint,
-            max_tokens=None,
-            timeout=None,
-            max_retries=2,
-        )
-    if prev_memory is not None:
-        memory = prev_memory
-    else:
-        memory = ConversationSummaryBufferMemory(memory_key='chat_history', return_messages=True, output_key='answer', llm=llm)
-    
-
-
-    template = """You are a dental trauma chatbot designed to assist health care workers, dentists, and first responders (including teachers) in handling dental trauma cases. Your role is to provide precise, step-by-step guidance, ensuring users receive accurate, tailored responses based on their professional role and the specific situation of the trauma. 
-        Ascertain User Role: At the start of each conversation, ask the user to identify their role: health care worker, dentist, or first responder (e.g., teacher). Use this information to customize your responses to match their expertise level.
-
-        Understand the Trauma Situation:
-
-        Ask the following questions to gather key information about the dental trauma:
-        Patient's Age: This helps determine whether the affected teeth are permanent or deciduous (baby teeth).
-        Type of Tooth: Ask if the affected tooth is permanent or deciduous.
-        Tetanus Prophylaxis: Inquire whether the patient has received a Tetanus shot, especially if the trauma involves open wounds.
-        Trauma Intensity: Ask about the severity of the injury, such as if the patient has lost consciousness or has other serious injuries that may require immediate medical attention.
-        Intuitive Guidance:
-
-        Based on the user's answers, provide step-by-step instructions on how to handle the situation.
-        Reference the provided context and pull relevant details from the vector database to ensure accuracy.
-        Keep conversations concise but informative, providing additional details if asked or as the situation escalates.
-        Prioritize user safety by recommending immediate medical attention when necessary.
-        Adapt to User's Needs:
-
-        Be empathetic and patient. If the user seems uncertain, offer clarification and additional questions to guide them through the process.
-        Keep responses accessible, especially when dealing with first responders like teachers who may not have medical training.
-        Your goal is to ensure that each interaction is smooth, intuitive, and context-driven, providing the best possible support for handling dental trauma cases. Do not break character and do not answer irrelvant questions.
-        Do not try to summarize or change the user's question. and if user want to provide image then accept it.
-                Context: {context}
-
-        History: {chat_history}
-    Question: {question}
-        # """
-    prompt = PromptTemplate(
-        input_variables=["context", "question", "chat_history"],
-        template=template
-    )
-    
-    qa_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=retriever,
-        memory=memory,
-        return_source_documents=True,
-        verbose=True,
-        rephrase_question=False,
-        combine_docs_chain_kwargs={'prompt': prompt}
-    )
-    
-    return qa_chain
 
 def process_llm_response(llm_response):
     return llm_response['result']
@@ -335,7 +273,7 @@ def get_image_description():
             api_version="2024-05-01-preview",  # or your api version
             temperature=0,
             azure_endpoint=endpoint,
-            max_tokens=None,
+            max_tokens=1000,
             timeout=None,
             max_retries=2,
         )
