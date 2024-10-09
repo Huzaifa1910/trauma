@@ -11,7 +11,7 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import AzureChatOpenAI
 import os.path
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
-from langchain.embeddings import OpenAIEmbeddings
+from langchain.embeddings import AzureOpenAIEmbeddings
 import base64
 from io import BytesIO
 from PIL import Image
@@ -20,7 +20,7 @@ from langchain_core.messages.human import HumanMessage
 from langchain_core.messages.ai import AIMessage
 import sys
 
-sys.modules['sqlite3'] = __import__('pysqlite3')
+# sys.modules['sqlite3'] = __import__('pysqlite3')
 from langchain_community.vectorstores import Chroma
 
 dotenv.load_dotenv()
@@ -127,7 +127,8 @@ def get_file_data(memory=None):
     persist_directory = 'openaidb'
 
     ## here we are using OpenAI embeddings but in future we will swap out to local embeddings
-    embedding = OpenAIEmbeddings()
+    embedding = AzureOpenAIEmbeddings(openai_api_base=endpoint, openai_api_version="2024-05-01-preview", chunk_size=1536, validate_base_url=True, deployment='gpt40EmbeddingSmall')
+    
     vectordb = Chroma(persist_directory=persist_directory, 
                     embedding_function=embedding)
     qa_chain = set_model(vectordb,memory)
@@ -309,7 +310,6 @@ def get_image_description():
     # Encode the uploaded image in base64
     data = request.json
     image = data['image']
-    prompt = data['question']
     png_image = change_image_format(image)
     png_image = f"data:image/png;base64,{png_image}"
     image_red = reduce_base64_image_size(png_image, output_format='PNG', quality=100, width_scale=0.9)
