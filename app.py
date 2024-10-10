@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 import dotenv
+from flask_cors import CORS
 import os
 import requests
 import re
@@ -25,6 +26,7 @@ from langchain_community.vectorstores import Chroma
 
 dotenv.load_dotenv()
 app = Flask(__name__)
+CORS(app)
 
 
 class ConversationManager:
