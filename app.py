@@ -21,7 +21,7 @@ from langchain_core.messages.human import HumanMessage
 from langchain_core.messages.ai import AIMessage
 import sys
 
-# sys.modules['sqlite3'] = __import__('pysqlite3')
+sys.modules['sqlite3'] = __import__('pysqlite3')
 from langchain_community.vectorstores import Chroma
 
 dotenv.load_dotenv()
@@ -66,7 +66,7 @@ def set_model(vectordb,prev_memory=None):
     llm = AzureChatOpenAI(
             azure_deployment=deployment,  # or your deployment
             api_version="2024-05-01-preview",  # or your api version
-            temperature=0,
+            temperature=0.7,
             azure_endpoint=endpoint,
             max_tokens=None,
             timeout=None,
@@ -273,7 +273,7 @@ def get_image_description():
     llm = AzureChatOpenAI(
             azure_deployment=deployment,  # or your deployment
             api_version="2024-05-01-preview",  # or your api version
-            temperature=0,
+            temperature=0.7,
             azure_endpoint=endpoint,
             max_tokens=1000,
             timeout=None,
