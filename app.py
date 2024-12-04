@@ -4,30 +4,31 @@ from flask_cors import CORS
 import os
 import requests
 import re
-from openai import OpenAI
-from langchain.memory import ConversationSummaryBufferMemory, ConversationBufferMemory
+# from openai import OpenAI
+from langchain.memory import ConversationSummaryBufferMemory
 # from langchain.chains import RetrievalQA
 from langchain.chains import ConversationalRetrievalChain
 # from langchain_openai import ChatOpenAI
-from langchain.chat_models import AzureChatOpenAI
+from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 import os.path
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
-from langchain.embeddings import AzureOpenAIEmbeddings
+from langchain.embeddings import AzureOpenAIEmbeddings, OpenAIEmbeddings
 import base64
 from io import BytesIO
 from PIL import Image
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.messages.human import HumanMessage
 from langchain_core.messages.ai import AIMessage
-import sys
+# import sys
 
-sys.modules['sqlite3'] = __import__('pysqlite3')
+# sys.modules['sqlite3'] = __import__('pysqlite3')
 from langchain_community.vectorstores import Chroma
 
 dotenv.load_dotenv()
 app = Flask(__name__)
 CORS(app)
-
+openai_api_key = os.getenv("OPENAI_API")
+os.environ["OPENAI_API_KEY"] = openai_api_key
 
 class ConversationManager:
     _instance = None
@@ -63,15 +64,23 @@ class ConversationManager:
 def set_model(vectordb,prev_memory=None):
     retriever = vectordb.as_retriever(search_kwargs={"k": 10})
     # llm = gpt
-    llm = AzureChatOpenAI(
-            azure_deployment=deployment,  # or your deployment
-            api_version="2024-05-01-preview",  # or your api version
-            temperature=0.7,
-            azure_endpoint=endpoint,
-            max_tokens=None,
-            timeout=None,
-            max_retries=2,
+    llm = ChatOpenAI(
+        api_key=openai_api_key,
+        model="gpt-4o",
+        temperature=0.7,
+        max_tokens=500,
+        timeout=None,
+        max_retries=2,
         )
+    # llm = AzureChatOpenAI(
+    #         azure_deployment=deployment,  # or your deployment
+    #         api_version="2024-05-01-preview",  # or your api version
+    #         temperature=0.7,
+    #         azure_endpoint=endpoint,
+    #         max_tokens=None,
+    #         timeout=None,
+    #         max_retries=2,
+    #     )
     if prev_memory is not None:
         memory = prev_memory
     else:
@@ -129,7 +138,8 @@ def get_file_data(memory=None):
     persist_directory = 'openaidb'
 
     ## here we are using OpenAI embeddings but in future we will swap out to local embeddings
-    embedding = AzureOpenAIEmbeddings(openai_api_base=endpoint, openai_api_version="2024-05-01-preview", chunk_size=1536, validate_base_url=True, deployment='gpt40EmbeddingSmall')
+    embedding = OpenAIEmbeddings()
+    # embedding = AzureOpenAIEmbeddings(openai_api_base=endpoint, openai_api_version="2024-05-01-preview", chunk_size=1536, validate_base_url=True, deployment='gpt40EmbeddingSmall')
     
     vectordb = Chroma(persist_directory=persist_directory, 
                     embedding_function=embedding)
@@ -270,15 +280,23 @@ def get_image_description():
         "messages": [],
         }
     resp_payload = make_payload(payload,user_query)
-    llm = AzureChatOpenAI(
-            azure_deployment=deployment,  # or your deployment
-            api_version="2024-05-01-preview",  # or your api version
-            temperature=0.7,
-            azure_endpoint=endpoint,
-            max_tokens=1000,
-            timeout=None,
-            max_retries=2,
+    llm = ChatOpenAI(
+        api_key=openai_api_key,
+        model="gpt-4o",
+        temperature=0.7,
+        max_tokens=500,
+        timeout=None,
+        max_retries=2,
         )
+    # llm = AzureChatOpenAI(
+    #         azure_deployment=deployment,  # or your deployment
+    #         api_version="2024-05-01-preview",  # or your api version
+    #         temperature=0.7,
+    #         azure_endpoint=endpoint,
+    #         max_tokens=1000,
+    #         timeout=None,
+    #         max_retries=2,
+    #     )
     prompt = ChatPromptTemplate.from_messages(resp_payload)
     chain = prompt | llm
     response = chain.invoke({"image_red": image_red})
@@ -337,4 +355,4 @@ def get_response():
 
     return jsonify(resp)
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=444, ssl_context=('cert.pem', 'key.pem'))
