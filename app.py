@@ -260,13 +260,16 @@ def get_image_description():
     # Encode the uploaded image in base64
     data = request.json
     image = data['image']
+    prompt_question = data['question']
     png_image = change_image_format(image)
     png_image = f"data:image/png;base64,{png_image}"
     image_red = reduce_base64_image_size(png_image, output_format='PNG', quality=100, width_scale=0.9)
     user_query = (
             "user",
             [
-                
+                {"type": "text",
+                "text": f"{prompt_question}"
+                },
                 {
                 "type": "image_url",
                 "image_url": {
@@ -300,6 +303,7 @@ def get_image_description():
     prompt = ChatPromptTemplate.from_messages(resp_payload)
     chain = prompt | llm
     response = chain.invoke({"image_red": image_red})
+    print(response)
     
     return jsonify({
         'response': response.content,
@@ -332,6 +336,7 @@ def get_response():
         qa_chain = ConversationManager.get_instance().get_conversation()['chain']
     try:
         response = qa_chain({"question":question})
+        print(response)
         resp = {
         'source': response['source_documents'][0].__dict__['metadata']['source'],
         'response': response['answer'],
