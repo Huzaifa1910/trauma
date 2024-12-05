@@ -135,7 +135,7 @@ def set_model(vectordb,prev_memory=None):
 
 def get_file_data(memory=None):    
     # dumpData()
-    persist_directory = 'openaidb'
+    persist_directory = 'openaidbnew'
 
     ## here we are using OpenAI embeddings but in future we will swap out to local embeddings
     embedding = OpenAIEmbeddings()
