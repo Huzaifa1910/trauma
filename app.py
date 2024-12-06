@@ -269,9 +269,6 @@ def get_image_description():
     user_query = (
             "user",
             [
-                {"type": "text",
-                "text": f"{prompt_question}"
-                },
                 {
                 "type": "image_url",
                 "image_url": {
