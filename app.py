@@ -291,7 +291,7 @@ def get_image_description():
             ]
     )
     
-    # Payload for the request
+    # Payload for the request something
     payload = {
         "messages": [],
         }
