@@ -380,4 +380,4 @@ def get_response():
 
     return jsonify(resp)
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=444, ssl_context=('cert.pem', 'key.pem'))
+    app.run(debug=True)
