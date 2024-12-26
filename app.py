@@ -19,9 +19,9 @@ from PIL import Image
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.messages.human import HumanMessage
 from langchain_core.messages.ai import AIMessage
-# import sys
+import sys
 
-# sys.modules['sqlite3'] = __import__('pysqlite3')
+sys.modules['sqlite3'] = __import__('pysqlite3')
 from langchain_community.vectorstores import Chroma
 
 dotenv.load_dotenv()
@@ -367,4 +367,4 @@ def get_response():
 
     return jsonify(resp)
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=444, ssl_context=('cert.pem', 'key.pem'))
+    app.run(debug=True)
